@@ -85,7 +85,7 @@ h1{
     padding-bottom: 2rem;
   }
 .footer{
-    background: #47525E;
+    background: #2663a5a9;
     padding: 2rem 0;
     text-align: center;
 }
@@ -274,14 +274,14 @@ h1{
 
 
 .foro-content{
-    background: #8492A6;
+    background: #4e6a882d;
     display: block;
     width: 100%;
 }
 /********* Busqueda **********/
 .busqueda{
     width: 70%;
-    background: #8492A6;
+
     display: flex;
     justify-content: center;
     align-items: center;
@@ -308,7 +308,7 @@ h1{
 }
 .content-pre{
     border: #47525E 1.5px solid;
-    background: white;
+    background: rgba(68, 67, 67, 0.089);
 }
 .content-pregun{
     padding: 0.5rem 5rem;
@@ -328,7 +328,7 @@ h1{
 }
 .content-pre-foro{
     font-size: 15px;
-    background: #fff;
+    background: rgba(255, 255, 255, 0.404);
     border: #47525E 3px solid;
     border-radius: 0px 25px 25px 25px;
     width: 100%;
@@ -370,7 +370,7 @@ background: yellow;
 .num-resp{
     border: 1px solid black;
     padding: 1rem 1rem;
-    background: white; /**base del content*/
+    background: rgba(133, 130, 130, 0.308); /**base del content*/
     border-color: #aaaaaa;
     border-width: 2px;
     border-style: dashed;
@@ -450,7 +450,7 @@ background: yellow;
 
 .h1contac{
     text-align: center;
-    background: #8492A6;
+    background: #8fb2d8;
 }
 .conten-contactos{
     width: 80%;
@@ -735,7 +735,7 @@ background: yellow;
    
     border: 0; /*anchura, estilo y color borde*/
     padding: 8px; /*espacio alrededor texto*/
-    background-color: #47525E; /*color botón*/
+    background-color: #2f445a; /*color botón*/
     color: #ffffff; /*color texto*/
     text-decoration: none; /*decoración texto*/
    
@@ -747,7 +747,7 @@ background: yellow;
 }
 .botones-index:hover {
     background-color: #ccc; /* Green */
-    color: #47525E;
+    color: #2f445a;
 }  
 /*******Preguntas Frecuentes*********/
 .padre-fre{
