@@ -18,15 +18,12 @@ from django.urls import path
 from django.conf.urls import include,url
 #clases propias
 
-from SistemaTutoriales.views import index, about_us, contact_us, pregunta_frecuente
+from SistemaTutoriales.views import index,about_us,contact_us,pregunta_frecuente,index2
 from usuarios import views as vu
 
-#Para el login que trae Django
-from django.contrib.auth.views import LoginView, LogoutView
-#Para indicar que es necesario loguearse
-from django.contrib.auth.decorators import login_required
+#Clases para el login
+from . import views as vw
 
-#from SistemaTutoriales/views.py import hola
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', index),
@@ -34,16 +31,31 @@ urlpatterns = [
     url(r'^pregunta/$',vu.pregunta),
     url(r'^comentario/$',vu.comentario),
     url(r'^calificacion/$',vu.calificacion),
+    url(r'^aRespuesta/$',vu.aniadir_respuesta),
+    url(r'^eRespuesta/$',vu.eliminar_respuesta),
+    url(r'^reRespuesta/$',vu.editar_respuesta),
     path('foro/', vu.foro, name='foro'),
     #ruta para el registro, login y logout
-    path('registro/', vu.registro, name='registro'),
-    path('accounts/login/', LoginView.as_view(template_name='login.html'), name='login'),
-    path('login/', LoginView.as_view(template_name='login.html'), name='login'),
-    path('logout/', LogoutView.as_view(template_name='logout.html'), name='logout'),
+    path('login/', vw.login_user, name='login'),
+    path('login', vw.login_user, name='login'),
+    path('auth/login/', vw.login_user, name='login'),
+    path('accounts/login/', vw.login_user, name='login'),
+    path('register', vw.register, name='register'),
+    path('logout_user', vw.logout_user, name='logout_user'),
     #ruta del search
     path('search_e/', vu.search_e),
+    #ruta para ver Historial
+    path('verHistorial/<int:id>',vu.verHistorial,name='verHistorial'),
+    path('editarPerfil/<int:id>',vu.editarPerfil,name='editarPerfil'),
+    path('eliminarCuenta/<int:id>',vu.eliminarCuenta,name='eliminarCuenta'),
+    path('eliminarPregunta/<int:id>',vu.eliminarPregunta,name='eliminarPregunta'),
+    path('eliminarRespuesta/<int:id>',vu.eliminarRespuesta,name='eliminarRespuesta'),
+    #fin de mis url's
+    path('formular_p/', vu.formular_p),
+    path('Enviar_Pregunta/', vu.Enviar_Pregunta),
+    #rutas de Frontend
     path('about/', about_us,name="Nosotros"),
     path('contact/', contact_us,name="Contactenos"),
     path('preguntas_frecuentes/', pregunta_frecuente, name="Frecuentes"),
-    path('editarPerfil/<int:id>',vu.editarPerfil,name='editarPerfil')
+    path('inicio/', index2,name="inicio")
 ]

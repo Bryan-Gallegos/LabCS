@@ -2,15 +2,20 @@
 
 {%block cuerpo %}
 <br>
-<div class="content-res">
+<div class="content-resp">
 
     <div class="content-respues">
 
         <input type="checkbox" id="resp_normal">
         <label for="resp_normal">Ver respuestas comunes</label>
-        <h3>{{pregunta}}</h3>
-
-        {{pregunta.descripcion}}
+        
+        <div class="pregunta-foro">
+            <h3>{{pregunta}}</h3>
+        </div>
+        <div class="content-pre-foro">
+            {{pregunta.descripcion}}
+        </div>
+     
         <br>
         <div id="ajax">
             {%include "respuestas.html" %}

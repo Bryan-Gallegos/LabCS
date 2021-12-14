@@ -4,13 +4,17 @@ from django.core.exceptions import ObjectDoesNotExist
 #Formularios para en registro en django
 from datetime import datetime as dt
 from django.contrib import messages
-from .forms import UserRegisterForm
+from django.contrib.auth.models import auth
+from django.contrib.auth.decorators import login_required
 
+from django.urls import reverse
 
 # Create your views here.
 
 from usuarios import models as usuarios
 import datetime
+from datetime import date, time #Jim
+
 def foro(request):
     preguntas = list(usuarios.Pregunta.objects.all())
     temas = list(usuarios.Tema.objects.all())
@@ -32,7 +36,6 @@ def pregunta(request):
     #verificamos que las respuestas a la pregunta sea confiable o no
     if request.GET.get("comun",""):
         respuestas = list(usuarios.Respuesta.objects.filter(pregunta_id=pregunta.id, confiabilidad_id = 1))       
-        
         num_com_por_resp = []
         for r in respuestas:
             '''
@@ -40,25 +43,29 @@ def pregunta(request):
             num_com_resp = len(com_resp)
             '''
             com= list(usuarios.Comentario.objects.filter(respuesta_id=r.id))
-            num_com_por_resp.append([r,len(com)])     
+            usuario = usuarios.Usuario.objects.get(id=r.usuario_id)
+            num_com_por_resp.append([r,len(com),usuario])     
                     
-        return render(request,'respuestas.html',{"respuestas":num_com_por_resp})
+        return render(request,'respuestas.html',{"respuestas":num_com_por_resp,"id_pregunta":request.GET.get("id","")})
     
     elif request.GET.get("confi",""):
         respuestas = list(usuarios.Respuesta.objects.filter(pregunta_id=pregunta.id, confiabilidad_id = 2))       
         num_com_por_resp = []
         for r in respuestas:
             com= list(usuarios.Comentario.objects.filter(respuesta_id=r.id))
-            num_com_por_resp.append([r,len(com)])                  
+            usuario = usuarios.Usuario.objects.get(id=r.usuario_id)
+            num_com_por_resp.append([r,len(com),usuario])              
         return render(request,'respuestas.html',{"respuestas":num_com_por_resp})
     
     respuestas = list(usuarios.Respuesta.objects.filter(pregunta_id=pregunta.id,confiabilidad_id = 2))
     num_com_por_resp = []
     for r in respuestas:
         com= list(usuarios.Comentario.objects.filter(respuesta_id=r.id))
-        num_com_por_resp.append([r,len(com)]) 
+        usuario = usuarios.Usuario.objects.get(id=r.usuario_id)
+        num_com_por_resp.append([r,len(com),usuario])
 
-    return render(request,'pregunta.html',{"pregunta":pregunta,"respuestas":num_com_por_resp,"temas":temas,"areas":areas})
+    return render(request,'pregunta.html',{"pregunta":pregunta,"respuestas":num_com_por_resp,"temas":temas,"areas":areas,"id_pregunta":request.GET.get("id","")})
+
 
 def comentario(request):
     respuesta_id=request.GET.get("id_respuesta","")
@@ -86,7 +93,7 @@ def calificacion(request):
         if usuarios.Calificacion.objects.filter(usuario_id=usuario.id,respuesta_id=cal).exists():
             
             califi=list(usuarios.Calificacion.objects.filter(usuario_id=usuario.id,respuesta_id=cal))[0]
-            print(califi.estado)
+            
             if (califi.estado == True):
                 respuesta.num_buena_calificacion=respuesta.num_buena_calificacion-1
                 respuesta.save()
@@ -97,7 +104,7 @@ def calificacion(request):
                 respuesta.num_mala_calificacion=respuesta.num_mala_calificacion-1
                 respuesta.save()
                 califi.save()
-        
+         
         else:
             ahora = dt.now()
             fecha = ahora.strftime("%Y-%m-%d %H:%M:%S")
@@ -110,8 +117,11 @@ def calificacion(request):
             )
             califi.save()
             respuesta.num_buena_calificacion=respuesta.num_buena_calificacion+1
-            respuesta.save()
-            return HttpResponse(respuesta.num_buena_calificacion)
+            respuesta.save() 
+        
+        sistemaDeNivel(request, respuesta)
+
+        return HttpResponse('{"likes":'+str(respuesta.num_buena_calificacion)+',"dislikes":'+str(respuesta.num_mala_calificacion)+'}')
 
     elif request.GET.get("dislike",""):
         if usuarios.Calificacion.objects.filter(usuario_id=usuario.id,respuesta_id=cal).exists():
@@ -142,101 +152,127 @@ def calificacion(request):
             califi.save()
             respuesta.num_mala_calificacion=respuesta.num_mala_calificacion+1
             respuesta.save()
-            return HttpResponse(respuesta.num_mala_calificacion)
+        
+        sistemaDeNivel(request, respuesta)
+                    
+        return HttpResponse('{"likes":'+str(respuesta.num_buena_calificacion)+',"dislikes":'+str(respuesta.num_mala_calificacion)+'}')
     
-    return HttpResponse("0")
+    return HttpResponse('{"likes":'+str(respuesta.num_buena_calificacion)+',"dislikes":'+str(respuesta.num_mala_calificacion)+'}')
 
-def registro(request):
-    #Hacemos un if para verificar si los campos fueron llenados
-    if request.method == 'POST':
-        form = UserRegisterForm(request.POST)
-        if form.is_valid():
-            form.save()
-            #Adeemas de guardar en el Auth User de Django, se
-            # guarda tambien en Usuarios_usuario
-            nombre_usuario = form.cleaned_data['username']
-            email_usuario = form.cleaned_data['email']
-            nombre_apellidos_usuario = form.cleaned_data['first_name'] +" "+ form.cleaned_data['last_name']
-            contrasenia_usuario = form.cleaned_data['password1']
-            #Se obtiene la fecha y hora actual
-            ahora = dt.now()
-            fecha = ahora.strftime("%Y-%m-%d %H:%M:%S")
+def sistemaDeNivel(request,respuesta):
+    diferencia=respuesta.num_buena_calificacion - respuesta.num_mala_calificacion
+    if (diferencia >= 2):
+        if(respuesta.confiabilidad_id != 2):
+            respuesta.confiabilidad_id=2
+            #usuario de la respuesta
+            u_d_l_r=usuarios.Usuario.objects.get(id=respuesta.usuario_id)
+            temp=u_d_l_r.num_resp_confiables if u_d_l_r.num_resp_confiables else 0
+            u_d_l_r.num_resp_confiables=temp+1
+            respuesta.save()
+            u_d_l_r.save()
+            #verifica la cantidad de resp_confiables que tiene el usuario para subir de nivel
+            if( 0<=u_d_l_r.num_resp_confiables and u_d_l_r.num_resp_confiables <=4 ):
+                u_d_l_r.nivel_id=2
+                u_d_l_r.save()
+            elif ( 5<=u_d_l_r.num_resp_confiables and u_d_l_r.num_resp_confiables <=9 ):
+                u_d_l_r.nivel_id=2
+                u_d_l_r.save()
+            elif ( 10<=u_d_l_r.num_resp_confiables and u_d_l_r.num_resp_confiables <=19 ):
+                u_d_l_r.nivel_id=3
+                u_d_l_r.save()
+            elif ( 20<=u_d_l_r.num_resp_confiables):
+                u_d_l_r.nivel_id=3
+                u_d_l_r.save()
+            else:
+                u_d_l_r.nivel_id=1
+                u_d_l_r.save()
 
-            usuario_en_creacion = usuarios.Usuario(
-                nombre = nombre_apellidos_usuario,
-                usuario = nombre_usuario,
-                correo = email_usuario,
-                contrasenia = contrasenia_usuario,
-                fecha_de_creacion = fecha,
-                fecha_de_modificacion = fecha,
-                estado=True)
-            usuario_en_creacion.save()
-            #messages.success(request, f'Usuario {nombre_apellidos_usuario} creado')
-            #messages.success(request, f'Usuario {username} creado')
-            return redirect('foro')
     else:
-        form = UserRegisterForm()
-    context = { 'form' : form}
-    return render(request, 'registro.html', context)
+        if(respuesta.confiabilidad_id != 1):
+            respuesta.confiabilidad_id=1
+            #usuario de la respuesta
+            u_d_l_r=usuarios.Usuario.objects.get(id=respuesta.usuario_id)
+            u_d_l_r.num_resp_confiables=(u_d_l_r.num_resp_confiables if u_d_l_r.num_resp_confiables else 1)-1
+            respuesta.save()
+            u_d_l_r.save()
+            if( 0<=u_d_l_r.num_resp_confiables and u_d_l_r.num_resp_confiables <=4 ):
+                u_d_l_r.nivel_id=1
+                u_d_l_r.save()
+            elif ( 5<=u_d_l_r.num_resp_confiables and u_d_l_r.num_resp_confiables <=9 ):
+                u_d_l_r.nivel_id=2
+                u_d_l_r.save()
+            elif ( 10<=u_d_l_r.num_resp_confiables and u_d_l_r.num_resp_confiables <=19 ):
+                u_d_l_r.nivel_id=3
+                u_d_l_r.save()
+            elif ( 20<=u_d_l_r.num_resp_confiables):
+                u_d_l_r.nivel_id=3
+                u_d_l_r.save()
+            else:
+                u_d_l_r.nivel_id=1
+                u_d_l_r.save()
+    return ""
+
 #buscar
 def search_e(request):
-   
-    preguntas=[]
-    if (request.GET.get("enum","")):
-        enuncia=request.GET["enum"]
-        preguntas=list(usuarios.Pregunta.objects.filter(enunciado__icontains=enuncia))
+    indices = ["enunciado__icontains", "area_id", "tema_id", "fecha_de_modificacion__gte"]
+    enunciado = request.GET.get("enum","")
+    area = request.GET.get("id_ar","")
+    tema = request.GET.get("id_tem","")
+    fecha = request.GET.get("date","")
+    objetos = [enunciado, area, tema, fecha]
+    filtro = {}
     
-    if (request.GET.get("id_ar","")):
-        id_area=request.GET["id_ar"]
-        if not len(preguntas) :
-            preguntas=list(usuarios.Pregunta.objects.filter(area_id=id_area))
-        else:
-            for pregunta in preguntas:
-                if int(pregunta.area_id)==int(id_area):
-                    preguntas.append(pregunta)
+    for i in range (4):
+        if objetos[i] != "":
+            filtro[indices[i]]=objetos[i]      
+    preguntas=list(usuarios.Pregunta.objects.filter(**filtro))
+    return render(request,"busqueda.html",{"preguntas":preguntas}) 
 
-    if (request.GET.get("id_tem","")) :
-        id_tema=request.GET["id_tem"]
-        if not len(preguntas) :
-            preguntas=list(usuarios.Pregunta.objects.filter(tema_id=id_tema))
-        else:
-            ptemp=preguntas
-            preguntas=[]
-            for pregunta in ptemp:
-                if int(pregunta.tema_id)==int(id_tema):
-                    preguntas.append(pregunta)
-    '''
-    arrraylist=()
-    arraylist2=()
-    if request.GET["enun"]
-        arraylist.add(enun)
-        arraylis2.add(enunciado__icontains)
-    if request.GET["id_ar"]
-        arraylis2.add(area_id)
-        arraylist.add(id_ar)
-    if request.GET["id_tem"]
-        arraylist.add(id_team)
-        arraylis2.add(tema_id)
-    if request.GET["date"]
-        arraylist.add()
-        arraylis2.add(fecha_de_modificacion)
-    for arraylist 
-       pregunta=list(usuarios.Pregunta.objects.filter(array(0)=arraylist(0))) 
-       
-    '''
-    if (request.GET.get("date","")) :
-        dt=request.GET["date"]
-        if not len(preguntas) :
-            preguntas=list(usuarios.Pregunta.objects.filter(fecha_de_modificacion=dt))
-        else:
-            ptemp=preguntas
-            preguntas=()
-            for pregunta in ptemp:
-                if pregunta.fecha_de_modificacion==dt:
-                    preguntas.append(pregunta)
-    if not len(preguntas):
-        preguntas=[]
-    return render(request,"busqueda.html",{"preguntas":preguntas})       
+def aniadir_respuesta(request):
+    usuario=request.GET.get("usuario","")
+    pregunta_id=request.GET.get("pregunta_id","")
+    contenido=request.GET.get("contenido","")
+    ahora = dt.now()
+    fecha = ahora.strftime("%Y-%m-%d %H:%M:%S")
+    usuario=usuarios.Usuario.objects.get(usuario=usuario)
+    respuesta_nueva=usuarios.Respuesta(
+        contenido=contenido,
+        num_buena_calificacion=0,
+        num_mala_calificacion=0,
+        fecha_de_creacion=fecha,
+        fecha_de_modificacion=fecha,
+        estado=1,
+        confiabilidad_id=1,
+        pregunta_id=int(pregunta_id),
+        usuario_id=usuario.id                
+    )
+    respuesta_nueva.save()
+    return HttpResponse("se añadio respuesta "+str(usuario)+" "+str(usuario.id))
+
+def eliminar_respuesta(request):
+    respuesta_id=request.GET.get("respuesta_id","")
+    resp_eliminada=usuarios.Respuesta.objects.get(id=respuesta_id).delete()
+    return HttpResponse("se elimino")
+
+def editar_respuesta(request):
+    respuesta_id=request.GET.get("id","")
+    contenido=request.GET.get("nuevoContenido","")
+    respuesta=usuarios.Respuesta.objects.filter(id=int(respuesta_id)).update(contenido=contenido)
+    return HttpResponse("se cambio contenido")
+
+def verHistorial(request, id):
+    #Importamos todos los usuarios, preguntas y respuestas
+    allUsers=usuarios.Usuario.objects.all()
+    allQuestions=usuarios.Pregunta.objects.all()
+    allAnswers=usuarios.Respuesta.objects.all()
+    userQuestions=usuarios.Pregunta.objects.filter(usuario=id)
+    userAnswers=usuarios.Respuesta.objects.filter(usuario=id)
+    currUser=usuarios.Usuario.objects.get(id=id)
+    print(currUser.nombre)
+    currUser=auth.authenticate(username=currUser.usuario,password=currUser.contrasenia)
+    auth.login(request,currUser)
+    currUser=usuarios.Usuario.objects.get(id=id)
+    return render(request, "verHistorial.html", {'currUser': currUser, 'questions': userQuestions, 'answers': userAnswers ,'allQuestions' : allQuestions, 'allAnswers':allAnswers, 'users':allUsers })
 
 def editarPerfil(request, id):
     if request.method=='POST':
@@ -271,3 +307,65 @@ def editarPerfil(request, id):
         """
         return render(request,"editarPerfil.html",{'currUser':currUser, 'fechaCumpleanios':fechaCumpleanios})
         #return render(request,"editarPerfil.html",{'currUser':currUser})
+
+def eliminarCuenta(request, id):
+    if request.method=='POST':
+        #print(request.user.nombre)
+        delUser=usuarios.Usuario.objects.get(id=id)
+        if(request.POST['nomUsuario'] == delUser.usuario and delUser.estado == True):
+            delUser.estado = False
+            delUser.save()
+            messages.info(request,'Se elimino la cuenta')
+            return render(request,"index.html",{})
+        else:
+            messages.info(request,'No se pudo eliminar la cuenta')
+            return render(request,"index.html",{})
+    else:
+        return render(request,"editarPerfil.html",{})
+
+def eliminarPregunta(request, id):
+    selQuestion=usuarios.Pregunta.objects.get(id=id)
+    selQuestion.delete()
+    print("Se elimino la pregunta")
+    return render(request,"index.html",{})
+
+def eliminarRespuesta(request, id):
+    selQuestion=usuarios.Respuesta.objects.get(id=id)
+    selQuestion.delete()
+    print("Se elimino la respuesta")
+    return render(request,"index.html",{})
+
+#Fin de mis vistas
+
+#agregarpregunta
+@login_required()
+def formular_p(request):
+    temas = list(usuarios.Tema.objects.all())
+    areas = list(usuarios.Area.objects.all())
+    return render(request, 'formular_p.html',{"temas":temas,"areas":areas})
+    
+def Enviar_Pregunta(request):
+    
+    d_enunciado = request.GET.get("enun","")
+    d_area = request.GET.get("id_ar","")
+    d_tema = request.GET.get("id_tem","")
+    d_descripcion = request.GET.get("descrip","")
+    
+    ahora = dt.now()
+    fecha = ahora.strftime("%Y-%m-%d %H:%M:%S")
+    #usuario=usuarios.Usuario.objects.get(usuario=usuario)
+    pregunta_nueva=usuarios.Pregunta(
+        enunciado=d_enunciado,
+        area_id=d_area,
+        tema_id=d_tema,
+        descripcion=d_descripcion,
+        fecha_de_creacion=fecha,
+        fecha_de_modificacion=fecha,
+        estado=1,
+       # usuario_id=usuario.id
+                    
+    )
+    pregunta_nueva.save()
+    preguntas = list(usuarios.Pregunta.objects.all())
+    #return render(request, 'foro.html',{"preguntas":preguntas})   
+    return redirect('../foro/',{"preguntas":preguntas})  
