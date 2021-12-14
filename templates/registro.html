@@ -1,17 +1,17 @@
 {% extends 'base/base.html' %}
 
 <head>
-    <title>{% block title %} login {% endblock %}</title>
+    <title>{% block title %}Registro de Sesión{% endblock %}</title>
 </head>
 
 <body>
     {% block content %}
     <div class="cuerpo">
         <form action="" class="form" method="post">
-            <h1 class="form-title">Iniciar Sesion</h1>
+            <h1 class="form-title">registro</h1>
             {% csrf_token %}
             {{ form.as_p }}
-            <button type="submit" id="submit">Iniciar Sesión</button>
+            <button type="submit" id="submit">Registrarse</button>
         </form>
     </div>
 

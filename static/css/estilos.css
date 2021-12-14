@@ -17,7 +17,7 @@ h1{
 .header{
     background: white;
     color: #47525E;
-    z-index: 2;
+    
     position: fixed ;/*posicion del navegador fijo*/
     left: 0;
     top: 0;
@@ -289,7 +289,7 @@ h1{
 }
 .back-preg{
     /*background-color: white;*/
-    /*background-color:red;*/
+    background-color:red;
     width: 100%;
     height: 100%;
     margin-bottom: -25px;
@@ -300,6 +300,7 @@ h1{
    
     width: 90%;
     padding-left: 10%;
+    
   
    
 }
@@ -321,27 +322,13 @@ h1{
     width: 100%;
 }
 
-.pregunta-foro{
-    font-size: 20px;
-    background: #aaa;
-  
-}
-.content-pre-foro{
-    font-size: 15px;
-    background: #fff;
-    border: #47525E 3px solid;
-    border-radius: 0px 25px 25px 25px;
-    width: 100%;
-    min-height: 4rem;
-    height: auto;
-}
-/***Respuestas**/
+/******Respuestas*****/
 .content-veres{
     border: #47525E 1.5px solid;
     background: white;
     text-align: center;
 }
-.content-resp{
+.content-res{
     border: #47525E 3px solid;
     border-radius: 0px 10px 39px 22px;
     width: 80%;
@@ -353,88 +340,24 @@ h1{
     padding: 0.5rem 5rem;
     align-items: center;
 }
-.acciones-resp{
-    background: red;
-}
-.title-comentario{
-background: yellow;
-}
 #n_respuestas{
     color: red;
 }
 .resp-con{
+    background: #47525e2f;
     border: #47525E 1.5px;
-    /*background: yellow;*/
     border-radius: 11px;
 }
-.num-resp{
-    border: 1px solid black;
-    padding: 1rem 1rem;
-    background: white; /**base del content*/
-    border-color: #aaaaaa;
-    border-width: 2px;
-    border-style: dashed;
-    height: auto;
-    border-radius: 0px 10px 39px 22px;
-}
-.conten-acciones{
-    margin-bottom: -10px;
-  /*background: saddlebrown;*/
-    width:100%;
-    text-align: right;
-}
-.acciones-like{
-    float:left;
-    width: 96%;
-    margin-left: 2%;
-    margin-right: 2%;
-   /*background: red;*/
-    margin-top:-4px;
-    
-}
-.acciones-like span{
-    padding: 5px 5px ;
-}
-.conten-button-coment{
-    width: 80%;
-    margin-left: 10%;
-    margin-right: 10%;
-}
-.botonComentario{
-    float:right;
-    margin-top:-40px;
-    
-}
 
-.conten-button-coment{
-    width: 80%;
-    margin-left: 10%;
-    margin-right: 10%;
-    /*background: green;*/
-    font-style: italic;
-}
-
-.content-form-agregar{
-    width: 80%;
-    margin-left: 10%;
-    margin-right: 10%;
-    display: flex;
-   /* background: rgb(80, 122, 55);*/
-    justify-content: space-between;
-}
-/********************Comentario *****************/
-
+/********* Comentario *******/
 .coment{
     border: #47525E 1.5px;
-    background: #566e8655;
+    background: #576f8855;
     border: #47525E 1.5px;
     border-radius: 11px;
     margin-left: 10%;
     margin-right: 10%;
     width: 80%;
-}
-.comentarios-content{
-    margin-left: 20px;
 }
 .coment h3{
     font-size: 17px;
@@ -445,54 +368,25 @@ background: yellow;
     text-align: center;
 }
 
-/******************* Contacto*************/
-
-
+/** Contacto**/
 .h1contac{
     text-align: center;
-    background: #8492A6;
-}
-.conten-contactos{
-    width: 80%;
-    
-    height: 400px;
-    margin-left: 10%;
-    margin-right: 10%;
-    /*background: red;*/
 }
 .padre {
     
     height: 100%;
+    
     /*IMPORTANTE*/
-    display: flex;
+   
     justify-content: center;
     align-items: center;
     
-}
-
-
-.navigation-contac {
-    text-align: center;
-}
-.navigation-contac ul{/*Hacemos que los ul no tengan*/
-    margin: 0;
-    padding: 0;
-    list-style: none;
-    display: inline-block;
-    
-} 
-.navigation-contac ul li{/*Hacemos que los ul no tengan*/
-    margin: 0rem;
-    padding: 0;
-} 
-
-.navigation-contac ul li a{
-    color: #47525E;
-    text-decoration: none;
-}
+  }
+  
 .hijo {
     background: white;
-    width: 350px;
+    margin-left: 32%;
+    width: 35%;
     height: 100%;
     display: grid;
     place-items: center;
@@ -504,22 +398,14 @@ background: yellow;
     text-align: justify;
 }
 /************************************Sobre Nosotros******************/
-.contenido{
-    text-align: center;
-    width: 80%;
-    
-    height: 500px;
-    margin-left: 10%;
-    margin-right: 10%;
-}
+
 .padre-about{
     
     margin: auto;
-    width: 100%;
-    height: 100%;
+    width: 95%;
+    height: 80%;
     /*background-color: red;*/
     display: flex;
-    float: none;
     justify-content: center;
     align-items: center;
 }
@@ -574,7 +460,9 @@ background: yellow;
     color: 47525E;
 }
 /************************INDEX*********************************/
-
+.index-rel{
+    position: -webkit-sticky;
+}
 /* Consideraciones Generales*/
 * {box-sizing: border-box}
 
@@ -585,15 +473,14 @@ background: yellow;
 .mySlides {display: none}
 
 /* Slideshow container */
-
 .slideshow-container 
 {
     /* El Tamaño del Contenedor de Imagenes */
     max-width: 1000px;
-    position: sticky;
-    float: none;
+    position: relative;
     margin: auto;
-    z-index: 1;
+    height: 100%;
+    position: -webkit-sticky;
 }
 
 /* Next & previous buttons */
@@ -775,5 +662,30 @@ background: yellow;
     text-align: center;
     font-size: 15px;
 }
-
-
+.exp-login{
+    width: 80%;
+    background: blue;
+    height: 460px;
+    margin-left: 10%;
+    margin-right: 10%;
+    display: grid;
+}
+.exp-fre-pa{
+    height: 90%;
+    vertical-align: center;
+    align-items: center;
+    text-align: center;
+    background: green;
+    width: 90%;
+    margin-left: 5%;
+    margin-right: 5%;
+    display: grid;
+}
+.exp-fre-hi{
+    text-align: center;
+    background: red;
+    width: 90%;
+    margin-left: 5%;
+    margin-right: 5%;
+    display: grid;
+}
