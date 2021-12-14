@@ -1,0 +1,31 @@
+<div class="coment">
+    <h3>Comentarios:</h3>
+    <div class="comentarios-content">
+        {%for comentario in comentarios%}
+        <p>{{comentario.0.contenido}}</p>
+        {%if comentario.1%}
+        <p>{{comentario.1}} comentarios</p>
+        <button class="subbotonComentario" id="scom{{comentario.0.id}}" id_comentario="{{comentario.0.id}}"
+            style="cursor:pointer;">ver comentarios</button><br>
+        {%endif%}
+        <div id="subcomentario{{comentario.0.id}}"></div>
+        {%endfor%}
+    </div>
+   
+    {%if request.session.is_empty%}
+    <h4>No se Inicio Sesión</h4>
+    {%else%}
+    <br>
+    <div class="content-form-agregar">
+        <div>
+        <p>Agregue su comentario</p>
+        </div>
+        <div>
+            <input  class="textbox" size="20" type="text">
+        </div>
+        <div>
+            <button class="botones-index">Guardar</button>
+        </div>
+    </div>
+    {%endif%}
+</div>
